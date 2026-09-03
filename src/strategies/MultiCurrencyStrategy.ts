@@ -2,6 +2,7 @@ import { Transaction } from '../models.js';
 import { ExchangeRateService } from '../services/ExchangeRateService.js';
 import { AuditStrategy } from './AuditStrategy.js';
 
+//Pull test
 export class MultiCurrencyStrategy implements AuditStrategy {
   public readonly name = 'Multi-Currency Auditor';
   public readonly description =
