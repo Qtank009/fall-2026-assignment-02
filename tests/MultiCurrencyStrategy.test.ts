@@ -30,21 +30,155 @@ describe('MultiCurrencyStrategy (Feature 5)', () => {
   //   expect(result).toContain('Balance: 45.00 EUR');
   // });
 
-  it.todo('should parse exchange rates and use customParam target currency');
+  it('should parse exchange rates and use customParam target currency', async () => {
 
-  it.todo(
-    'should default to EUR conversion if currency param is missing or invalid',
+    const testTransactions: Transaction[] = [
+      {
+        id: '1',
+        date: '2026-05-05',
+        amount: 100,
+        category: 'Salary',
+        description: 'Birth',
+        status: 'completed',
+      },
+    ];
+
+    const result = await strategy.execute(testTransactions, 'GBP');
+    expect(result).toContain('Target Currency: GBP');
+    expect(result).toContain('79.00 GBP');
+  });
+
+
+  it('should default to EUR conversion if currency param is missing or invalid', async () => {
+    const mockRates = {
+      base: 'USD',
+      rates: {
+        EUR: 0.92,
+        GBP: 0.79,
+      },
+    };
+
+    vi.spyOn(ExchangeRateService, 'getExchangeRates').mockResolvedValue(mockRates);
+
+    const testTransactions: Transaction[] = [
+      {
+        id: '1',
+        date: '2026-05-06',
+        amount: 100,
+        category: 'Salary',
+        description: 'Job',
+        status: 'completed',
+      },
+    ];
+
+    const result = await strategy.execute(testTransactions, 'JPY');
+
+    expect(result).toContain('Target Currency: EUR');
+    expect(result).toContain('92.00 EUR');
+  },);
+
+
+  it.todo('should throw an error if the target currency does not exist in exchange rates', async () => {
+    const mockRates = {
+      base: 'USD',
+      rates: {
+        GBP: 0.79,
+      },
+    };
+
+    vi.spyOn(ExchangeRateService, 'getExchangeRates').mockResolvedValue(mockRates);
+
+    const testTransactions: Transaction[] = [];
+
+    await expect(strategy.execute(testTransactions, 'JPY')).rejects.toThrow('404 Transaction Rate not Found');
+  },);
+
+
+  it.todo('should accurately convert individual transaction amounts to the target currency', async () => {
+    
+    const testTransactions: Transaction[] = [
+      {
+        id: '1',
+        date: '2026-05-01',
+        amount: 100,
+        category: 'Salary',
+        description: 'Job',
+        status: 'completed',
+      },
+      {
+        id: '2',
+        date: '2026-05-02',
+        amount: -50,
+        category: 'Food',
+        description: 'Bojangles',
+        status: 'completed',
+      },
+      {
+        id: '3',
+        date: '2026-05-03',
+        amount: 80.98,
+        category: 'Gift',
+        description: 'Early Birthday',
+        status: 'completed',
+      },
+      {
+        id: '4',
+        date: '2026-05-04',
+        amount: -1.67,
+        category: 'Food',
+        description: 'Food Lion',
+        status: 'completed',
+      },
+    ];
+
+    const result = await strategy.execute(testTransactions, 'EUR');
+
+    expect(result).toContain('92.00 EUR');
+    expect(result).toContain('-46.00 EUR');
+    expect(result).toContain(' 74.50 EUR');
+    expect(result).toContain('-1.54 EUR');
+  }
   );
 
-  it.todo(
-    'should throw an error if the target currency does not exist in exchange rates',
-  );
+  it.todo('should calculate and display totals (income, expense, net balance) in both USD and target currency', async () => {
 
-  it.todo(
-    'should accurately convert individual transaction amounts to the target currency',
-  );
+    const testTransactions: Transaction[] = [
+      {
+        id: '1',
+        date: '2026-05-05',
+        amount: 126.10,
+        category: 'Salary',
+        description: 'Job',
+        status: 'completed',
+      },
+      {
+        id: '2',
+        date: '2026-05-06',
+        amount: 240.67,
+        category: 'Gift',
+        description: 'Late Birth',
+        status: 'completed',
+      },
+      {
+        id: '3',
+        date: '2026-05-07',
+        amount: -100,
+        category: 'Purchase',
+        description: 'Game',
+        status: 'completed',
+      },
+    ];
 
-  it.todo(
-    'should calculate and display totals (income, expense, net balance) in both USD and target currency',
+    const result = await strategy.execute(testTransactions, 'JPY');
+
+    expect(result).toContain('Income: $366.77 USD');
+    expect(result).toContain('56996.06 JPY');
+
+    expect(result).toContain('Expenses: $-100 USD');
+    expect(result).toContain('-15540.00 JPY');
+
+    expect(result).toContain('Net Balance: $266.77 USD');
+    expect(result).toContain('13818.69 JPY');
+  }
   );
 });
