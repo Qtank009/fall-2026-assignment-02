@@ -35,6 +35,20 @@ export class TaxDeductionStrategy implements AuditStrategy {
 
     const taxSavings = totalDeductibleExpenses * taxConfig.standardTaxRate;
 
+    const nonDeductibleTransactions = transactions.filter(
+      transaction => transaction.amount < 0 &&
+                     !taxConfig.deductibleCategories.includes(transaction.category),
+    );
+
+    const totalNonDeductibleExpenses = Math.abs(
+      nonDeductibleTransactions.reduce(
+        (total, transaction) => total + transaction.amount,
+        0
+      )
+    );
+
+    const salesTax = totalNonDeductibleExpenses * taxConfig.standardTaxRate;
+
     throw new Error('Method not implemented.');
   }
 }
