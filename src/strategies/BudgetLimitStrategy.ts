@@ -17,7 +17,7 @@ export class BudgetLimitStrategy implements AuditStrategy {
     const budgets = await BudgetService.getCategoryBudgets();
 
     // 2. Group expenses (amounts < 0) by category and compute total spending for each category
-    
+
     const spendingByCategory: Record<string, number> = {};
     for (const t of transactions) {
       if (t.amount < 0) {
@@ -36,32 +36,44 @@ export class BudgetLimitStrategy implements AuditStrategy {
     const warningLines: string[] = [];
 
     for (const category in spendingByCategory) {
-
       const spending = spendingByCategory[category];
       const limit = budgets[category];
 
-      if(limit === undefined) {
-        summaryLines.push(category + ": spent $" + spending.toFixed(2) + ", no budget limit set.");
+      if (limit === undefined) {
+        summaryLines.push(
+          category +
+            ': spent $' +
+            spending.toFixed(2) +
+            ', no budget limit set.',
+        );
         continue;
       }
 
-      summaryLines.push(category + ": spent $" + spending.toFixed(2) + ", budget limit $" + limit.toFixed(2));
+      summaryLines.push(
+        category +
+          ': spent $' +
+          spending.toFixed(2) +
+          ', budget limit $' +
+          limit.toFixed(2),
+      );
 
       // 4. Identify overages (categories where spending exceeds the budget).
       if (spending > limit) {
-
         const overage = spending - limit;
         const percent = (spending / limit) * 100;
 
         overBudgetCategories.push(category);
 
-        warningLines.push(category + ": over budget by $" + overage.toFixed(2) + ", which is " + percent.toFixed(2) + "%");
+        warningLines.push(
+          category +
+            ': over budget by $' +
+            overage.toFixed(2) +
+            ', which is ' +
+            percent.toFixed(2) +
+            '%',
+        );
       }
     }
-
-
-    
-
 
     // 5. Format and return a text-based audit report outlining limits, actuals, overage amounts, percentages, and lists of transactions causing the overage.
 
@@ -74,8 +86,7 @@ export class BudgetLimitStrategy implements AuditStrategy {
     report.push('---Summary of Spending by Category---');
     if (summaryLines.length === 0) {
       report.push('No expenses found.');
-    }
-    else{
+    } else {
       report.push(...summaryLines);
     }
     report.push('');
@@ -83,8 +94,7 @@ export class BudgetLimitStrategy implements AuditStrategy {
     report.push('---Over Budget Categories---');
     if (warningLines.length === 0) {
       report.push('No categories are over budget.');
-    }
-    else {
+    } else {
       report.push(...warningLines);
     }
     report.push('');
@@ -92,11 +102,18 @@ export class BudgetLimitStrategy implements AuditStrategy {
     report.push('---Transactions Causing Overages---');
     for (const t of transactions) {
       if (t.amount < 0 && overBudgetCategories.includes(t.category)) {
-        report.push(t.date + ' | ' + t.category + ' | ' + t.description + ' | $' + Math.abs(t.amount).toFixed(2));
+        report.push(
+          t.date +
+            ' | ' +
+            t.category +
+            ' | ' +
+            t.description +
+            ' | $' +
+            Math.abs(t.amount).toFixed(2),
+        );
       }
     }
 
     return report.join('\n');
-
   }
 }
