@@ -21,6 +21,11 @@ export class TaxDeductionStrategy implements AuditStrategy {
 
     const taxConfig = await TaxConfigService.getTaxConfig();
 
+    const deductibleTransactions = transactions.filter(
+      transaction => transaction.amount < 0 &&
+                     taxConfig.deductibleCategories.includes(transaction.category),
+    );
+
     throw new Error('Method not implemented.');
   }
 }
