@@ -19,6 +19,8 @@ export class TaxDeductionStrategy implements AuditStrategy {
     // 5. Estimate sales tax/VAT paid on NON-deductible expenses using standard tax rate.
     // 6. Format and return a text-based audit report detailing total deductions, savings, VAT estimates, and eligible transactions.
 
+    const taxConfig = await TaxConfigService.getTaxConfig();
+
     throw new Error('Method not implemented.');
   }
 }
