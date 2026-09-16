@@ -15,6 +15,7 @@ export class MultiCurrencyStrategy implements AuditStrategy {
     // TODO: Feature 5 - Implement this strategy.
     // 1. Call ExchangeRateService.getExchangeRates() asynchronously.
     const exchangeRates = await ExchangeRateService.getExchangeRates();
+    
     // 2. Identify the target currency from `customParam` (default to 'EUR' if invalid/not provided).
     let targetCurrency = customParam?.toUpperCase() ?? 'EUR';
     if (!(targetCurrency in exchangeRates.rates)){
@@ -22,11 +23,54 @@ export class MultiCurrencyStrategy implements AuditStrategy {
     }
 
     // 3. Look up the exchange rate for the target currency (throw an error if not found in rates).
-
+    
+    const targetRate = exchangeRates.rates[targetCurrency];
+    if (targetRate == undefined){
+      throw new Error("404 Transaction Rate not Found");
+    }
+    
     // 4. Convert all transaction amounts to the target currency.
-    // 5. Calculate total income, total expenses, and net balance in BOTH USD and target currency.
-    // 6. Format and return a text-based audit report detailing conversion metrics, conversion rate used, and transaction summaries in both currencies.
+    
+    //USD transaction Loop
+    let totalIncomeUSD = 0;
+    let totalExpensesUSD = 0;
+    let netBalanceUSD = 0;
+    let averageUSD = 0;
 
+    let transactionList = '';
+
+    for (const transaction of transactions){
+      const convertedAmount = transaction.amount * targetRate;
+
+      if (transaction.amount > 0) {
+        totalIncomeUSD += transaction.amount;
+      } else if (transaction.amount < 0){
+        totalExpensesUSD += transaction.amount;
+      }
+
+      netBalanceUSD += transaction.amount;
+
+      transactionList +=
+        `${transaction.id} | ` +
+        `${transaction.description} | ` +
+        `$${transaction.amount.toFixed(2)} USD -> ` +
+        `${convertedAmount.toFixed(2)} ${targetCurrency}\n`;
+    }
+
+    if (transactions.length > 0){
+      const averageUSD = netBalanceUSD / transactions.length;
+    }
+    
+    // 5. Calculate total income, total expenses, and net balance in BOTH USD and target currency.
+    // Target Transaction Conversions
+    const totalIncomeConverted = totalIncomeUSD * targetRate;
+    const totalExpensesConverted = totalExpensesUSD * targetRate;
+    const netBalanceConverted = netBalanceUSD * targetRate;
+    const averageConverted = averageUSD * targetRate;
+
+    
+    // 6. Format and return a text-based audit report detailing conversion metrics, conversion rate used, and transaction summaries in both currencies.
+      
     throw new Error('Method not implemented.');
   }
 }
