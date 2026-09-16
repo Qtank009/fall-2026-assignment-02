@@ -31,6 +31,14 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
       description: 'Groceries',
       status: 'completed',
     },
+    {
+      id: '4',
+      date: '2026-05-04',
+      amount: 100,
+      category: 'Charity',
+      description: 'Refund',
+      status: 'completed',
+    },
   ];
 
   beforeEach(() => {
@@ -74,7 +82,19 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
     expect(result).not.toContain('Grocery');
   });
 
-  it.todo('should sum total eligible tax deductions correctly');
+  it('should sum total eligible tax deductions correctly', async () => {
+    const mockConfig = {
+      standardTaxRate: 0.08,
+      deductibleCategories: ['Business', 'Charity'],
+    };
+
+    vi.spyOn(TaxConfigService, 'getTaxConfig')
+      .mockResolvedValue(mockConfig);
+
+    const result = await strategy.execute(testTransactions);
+
+    expect(result).toContain('Deductions: $300.00');
+  });
 
   it.todo('should calculate estimated tax savings using standardTaxRate');
 
