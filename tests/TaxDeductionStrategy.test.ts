@@ -6,6 +6,33 @@ import { Transaction } from '../src/models.js';
 describe('TaxDeductionStrategy (Feature 4)', () => {
   let strategy: TaxDeductionStrategy;
 
+  const testTransactions: Transaction[] = [
+    {
+      id: '1',
+      date: '2026-05-01',
+      amount: -200,
+      category: 'Charity',
+      description: 'Donation',
+      status: 'completed',
+    },
+    {
+      id: '2',
+      date: '2026-05-02',
+      amount: -100,
+      category: 'Business',
+      description: 'Office supplies',
+      status: 'completed',
+    },
+    {
+      id: '3',
+      date: '2026-05-03',
+      amount: -50,
+      category: 'Food',
+      description: 'Groceries',
+      status: 'completed',
+    },
+  ];
+
   beforeEach(() => {
     strategy = new TaxDeductionStrategy();
     vi.restoreAllMocks();
@@ -29,9 +56,23 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
   //   expect(result).toContain('Savings: $20.00'); // $200 * 0.10
   // });
 
-  it.todo(
-    'should filter only the categories specified as deductible in the config',
-  );
+  it('should filter only the categories specified as deductible in the config', async () => {
+    const mockConfig = {
+      standardTaxRate: 0.10,
+      deductibleCategories: ['Business', 'Charity'],
+    };
+
+    const spy = vi
+      .spyOn(TaxConfigService, 'getTaxConfig')
+      .mockResolvedValue(mockConfig);
+
+    const result = await strategy.execute(testTransactions);
+
+    expect(spy).toHaveBeenCalled();
+    expect(result).toContain('Charity');
+    expect(result).toContain('Business');
+    expect(result).not.toContain('Grocery');
+  });
 
   it.todo('should sum total eligible tax deductions correctly');
 
