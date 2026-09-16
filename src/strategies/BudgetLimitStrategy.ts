@@ -13,11 +13,107 @@ export class BudgetLimitStrategy implements AuditStrategy {
   ): Promise<string> {
     // TODO: Feature 1 - Implement this strategy.
     // 1. Call BudgetService.getCategoryBudgets() asynchronously.
-    // 2. Group expenses (amounts < 0) by category and compute total spending for each category.
+
+    const budgets = await BudgetService.getCategoryBudgets();
+
+    // 2. Group expenses (amounts < 0) by category and compute total spending for each category
+
+    const spendingByCategory: Record<string, number> = {};
+    for (const t of transactions) {
+      if (t.amount < 0) {
+        const category = t.category;
+        if (!spendingByCategory[category]) {
+          spendingByCategory[category] = 0;
+        }
+        spendingByCategory[category] += Math.abs(t.amount);
+      }
+    }
+
     // 3. Compare spending against the fetched limits.
-    // 4. Identify overages (categories where spending exceeds the budget).
+
+    const overBudgetCategories: string[] = [];
+    const summaryLines: string[] = [];
+    const warningLines: string[] = [];
+
+    for (const category in spendingByCategory) {
+      const spending = spendingByCategory[category];
+      const limit = budgets[category];
+
+      if (limit === undefined) {
+        summaryLines.push(
+          category +
+            ': spent $' +
+            spending.toFixed(2) +
+            ', no budget limit set.',
+        );
+        continue;
+      }
+
+      summaryLines.push(
+        category +
+          ': spent $' +
+          spending.toFixed(2) +
+          ', budget limit $' +
+          limit.toFixed(2),
+      );
+
+      // 4. Identify overages (categories where spending exceeds the budget).
+      if (spending > limit) {
+        const overage = spending - limit;
+        const percent = (spending / limit) * 100;
+
+        overBudgetCategories.push(category);
+
+        warningLines.push(
+          category +
+            ': over budget by $' +
+            overage.toFixed(2) +
+            ', which is ' +
+            percent.toFixed(2) +
+            '%',
+        );
+      }
+    }
+
     // 5. Format and return a text-based audit report outlining limits, actuals, overage amounts, percentages, and lists of transactions causing the overage.
 
-    throw new Error('Method not implemented.');
+    const report: string[] = [];
+
+    report.push('Budget Limit Audit Report');
+    report.push('===========================');
+    report.push('');
+
+    report.push('---Summary of Spending by Category---');
+    if (summaryLines.length === 0) {
+      report.push('No expenses found.');
+    } else {
+      report.push(...summaryLines);
+    }
+    report.push('');
+
+    report.push('---Over Budget Categories---');
+    if (warningLines.length === 0) {
+      report.push('No categories are over budget.');
+    } else {
+      report.push(...warningLines);
+    }
+    report.push('');
+
+    report.push('---Transactions Causing Overages---');
+    for (const t of transactions) {
+      if (t.amount < 0 && overBudgetCategories.includes(t.category)) {
+        report.push(
+          t.date +
+            ' | ' +
+            t.category +
+            ' | ' +
+            t.description +
+            ' | $' +
+            Math.abs(t.amount).toFixed(2),
+        );
+      }
+    }
+
+    return report.join('\n');
   }
 }
