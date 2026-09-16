@@ -141,9 +141,51 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
       expect(result).toContain('Deductions: $300.00');
       expect(result).toContain('Savings: $30.00');
       expect(result).toContain('Sales Tax: $5.00');
-      
+
       expect(result).toContain('Charity - Donation');
       expect(result).toContain('Business - Office supplies');
     },
   );
+
+  it('should handle an empty list of transactions', async () => {
+    const mockConfig = {
+      standardTaxRate: 0.10,
+      deductibleCategories: ['Business', 'Charity'],
+    };
+
+    vi.spyOn(TaxConfigService, 'getTaxConfig')
+      .mockResolvedValue(mockConfig);
+
+    const result = await strategy.execute([]);
+
+    expect(result).toContain('Deductions: $0.00');
+    expect(result).toContain('Savings: $0.00');
+    expect(result).toContain('Sales Tax: $0.00');
+  });
+
+  it('should not treat positive transactions as deductible expenses', async () => {
+    const mockConfig = {
+      standardTaxRate: 0.10,
+      deductibleCategories: ['Business', 'Charity'],
+    };
+
+    vi.spyOn(TaxConfigService, 'getTaxConfig')
+      .mockResolvedValue(mockConfig);
+
+    const transactions: Transaction[] = [
+      {
+        id: '4',
+        date: '2026-05-04',
+        amount: 200,
+        category: 'Charity',
+        description: 'Refund',
+        status: 'completed',
+      },
+    ];
+
+    const result = await strategy.execute(transactions);
+
+    expect(result).toContain('Deductions: $0.00');
+    expect(result).toContain('Savings: $0.00');
+  });
 });
