@@ -96,7 +96,20 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
     expect(result).toContain('Deductions: $300.00');
   });
 
-  it.todo('should calculate estimated tax savings using standardTaxRate');
+    it('should calculate estimated tax savings using standardTaxRate', async () => {
+      const mockConfig = {
+        standardTaxRate: 0.10,
+        deductibleCategories: ['Business', 'Charity'],
+      };
+
+      vi.spyOn(TaxConfigService, 'getTaxConfig')
+        .mockResolvedValue(mockConfig);
+
+      const result = await strategy.execute(testTransactions);
+
+      expect(result).toContain('Savings: $30.00');
+    }
+  );
 
   it.todo(
     'should calculate estimated VAT/sales tax paid on non-deductible expense transactions',
