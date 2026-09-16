@@ -15,7 +15,7 @@ export class BudgetLimitStrategy implements AuditStrategy {
     // 1. Call BudgetService.getCategoryBudgets() asynchronously.
 
     const budgets = await BudgetService.getCategoryBudgets();
-    console.log(budgets);
+
     // 2. Group expenses (amounts < 0) by category and compute total spending for each category
     
     const spendingByCategory: Record<string, number> = {};
@@ -29,12 +29,11 @@ export class BudgetLimitStrategy implements AuditStrategy {
       }
     }
 
-    //used to test functionality of grouping expenses by category
-    //console.log(spendingByCategory);
-
     // 3. Compare spending against the fetched limits.
 
     const overBudgetCategories: string[] = [];
+    const summaryLines: string[] = [];
+    const warningLines: string[] = [];
 
     for (const category in spendingByCategory) {
 
@@ -42,14 +41,13 @@ export class BudgetLimitStrategy implements AuditStrategy {
       const limit = budgets[category];
 
       if(limit === undefined) {
-        console.log(category, "has no budget limit defined.");
+        summaryLines.push(category + ": spent $" + spending.toFixed(2) + ", no budget limit set.");
         continue;
       }
 
-      console.log(category, "spent:",spending, "limit", limit);
+      summaryLines.push(category + ": spent $" + spending.toFixed(2) + ", budget limit $" + limit.toFixed(2));
 
       // 4. Identify overages (categories where spending exceeds the budget).
-
       if (spending > limit) {
 
         const overage = spending - limit;
@@ -57,7 +55,7 @@ export class BudgetLimitStrategy implements AuditStrategy {
 
         overBudgetCategories.push(category);
 
-        console.log(category, "over budget by:", overage.toFixed(2), "which is", percent.toFixed(2) + "%");
+        warningLines.push(category + ": over budget by $" + overage.toFixed(2) + ", which is " + percent.toFixed(2) + "%");
       }
     }
 
@@ -73,10 +71,32 @@ export class BudgetLimitStrategy implements AuditStrategy {
     report.push('===========================');
     report.push('');
 
+    report.push('---Summary of Spending by Category---');
+    if (summaryLines.length === 0) {
+      report.push('No expenses found.');
+    }
+    else{
+      report.push(...summaryLines);
+    }
+    report.push('');
 
+    report.push('---Over Budget Categories---');
+    if (warningLines.length === 0) {
+      report.push('No categories are over budget.');
+    }
+    else {
+      report.push(...warningLines);
+    }
+    report.push('');
 
+    report.push('---Transactions Causing Overages---');
+    for (const t of transactions) {
+      if (t.amount < 0 && overBudgetCategories.includes(t.category)) {
+        report.push(t.date + ' | ' + t.category + ' | ' + t.description + ' | $' + Math.abs(t.amount).toFixed(2));
+      }
+    }
 
+    return report.join('\n');
 
-    throw new Error('Method not implemented.');
   }
 }
