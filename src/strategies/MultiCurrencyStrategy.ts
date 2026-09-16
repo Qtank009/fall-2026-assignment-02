@@ -58,7 +58,7 @@ export class MultiCurrencyStrategy implements AuditStrategy {
     }
 
     if (transactions.length > 0){
-      const averageUSD = netBalanceUSD / transactions.length;
+      averageUSD = netBalanceUSD / transactions.length;
     }
     
     // 5. Calculate total income, total expenses, and net balance in BOTH USD and target currency.
@@ -71,20 +71,20 @@ export class MultiCurrencyStrategy implements AuditStrategy {
     
     // 6. Format and return a text-based audit report detailing conversion metrics, conversion rate used, and transaction summaries in both currencies.
     const report = 
-      'Multi-Currency Audit Report\n' +
-      'Target Currency: ${targetCurrency}\n' +
-      'Conversion Rate: ${targetRate}\n\n' +
+      `Multi-Currency Audit Report\n` +
+      `Target Currency: ${targetCurrency}\n` +
+      `Conversion Rate: ${targetRate}\n\n` +
       
-      'Aggregated Metrics:\n' +
-      'Income: $${totalIncomeUSD} USD | ${totalIncomeConverted} ${targetCurrency}\n\n' +
+      `Aggregated Metrics:\n` +
+      `Income: $${totalIncomeUSD} USD | ${totalIncomeConverted} ${targetCurrency}\n\n` +
 
-      'Expenses: $${totalExpensesUSD} USD | ${totalExpensesConverted} ${targetCurrency}\n\n' +
+      `Expenses: $${totalExpensesUSD} USD | ${totalExpensesConverted} ${targetCurrency}\n\n` +
 
-      'Net Balance: $${netBalanceUSD} USD | ${netBalanceConverted} ${targetCurrency}\n\n' +
+      `Net Balance: $${netBalanceUSD} USD | ${netBalanceConverted} ${targetCurrency}\n\n` +
 
-      'Average Transaction: $${averageUSD} USD | ${averageConverted} ${targetCurrency}\n\n' +
+      `Average Transaction: $${averageUSD} USD | ${averageConverted} ${targetCurrency}\n\n` +
 
-      'Tranactions:\n' +
+      `Tranactions:\n` +
       transactionList;
     
     return report;
