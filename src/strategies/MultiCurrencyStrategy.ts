@@ -63,14 +63,31 @@ export class MultiCurrencyStrategy implements AuditStrategy {
     
     // 5. Calculate total income, total expenses, and net balance in BOTH USD and target currency.
     // Target Transaction Conversions
-    const totalIncomeConverted = totalIncomeUSD * targetRate;
-    const totalExpensesConverted = totalExpensesUSD * targetRate;
-    const netBalanceConverted = netBalanceUSD * targetRate;
-    const averageConverted = averageUSD * targetRate;
+    const totalIncomeConverted = (totalIncomeUSD * targetRate).toFixed(2);
+    const totalExpensesConverted = (totalExpensesUSD * targetRate).toFixed(2);
+    const netBalanceConverted = (netBalanceUSD * targetRate).toFixed(2);
+    const averageConverted = (averageUSD * targetRate).toFixed(2);
 
     
     // 6. Format and return a text-based audit report detailing conversion metrics, conversion rate used, and transaction summaries in both currencies.
+    const report = 
+      'Multi-Currency Audit Report\n' +
+      'Target Currency: ${targetCurrency}\n' +
+      'Conversion Rate: ${targetRate}\n\n' +
       
-    throw new Error('Method not implemented.');
+      'Aggregated Metrics:\n' +
+      'Income: $${totalIncomeUSD} USD | ${totalIncomeConverted} ${targetCurrency}\n\n' +
+
+      'Expenses: $${totalExpensesUSD} USD | ${totalExpensesConverted} ${targetCurrency}\n\n' +
+
+      'Net Balance: $${netBalanceUSD} USD | ${netBalanceConverted} ${targetCurrency}\n\n' +
+
+      'Average Transaction: $${averageUSD} USD | ${averageConverted} ${targetCurrency}\n\n' +
+
+      'Tranactions:\n' +
+      transactionList;
+    
+    return report;
+  
   }
 }
