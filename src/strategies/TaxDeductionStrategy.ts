@@ -33,6 +33,8 @@ export class TaxDeductionStrategy implements AuditStrategy {
       )
     );
 
+    const taxSavings = totalDeductibleExpenses * taxConfig.standardTaxRate;
+
     throw new Error('Method not implemented.');
   }
 }
