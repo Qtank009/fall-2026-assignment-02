@@ -126,7 +126,24 @@ describe('TaxDeductionStrategy (Feature 4)', () => {
     },
   );
 
-  it.todo(
+  it(
     'should structure report to show both aggregates and itemized deductible transactions',
+    async () => {
+      const mockConfig = {
+        standardTaxRate: 0.10,
+        deductibleCategories: ['Business', 'Charity'],
+      };
+
+      vi.spyOn(TaxConfigService, 'getTaxConfig')
+        .mockResolvedValue(mockConfig);
+
+      const result = await strategy.execute(testTransactions);
+      expect(result).toContain('Deductions: $300.00');
+      expect(result).toContain('Savings: $30.00');
+      expect(result).toContain('Sales Tax: $5.00');
+      
+      expect(result).toContain('Charity - Donation');
+      expect(result).toContain('Business - Office supplies');
+    },
   );
 });
