@@ -19,6 +19,51 @@ export class TaxDeductionStrategy implements AuditStrategy {
     // 5. Estimate sales tax/VAT paid on NON-deductible expenses using standard tax rate.
     // 6. Format and return a text-based audit report detailing total deductions, savings, VAT estimates, and eligible transactions.
 
-    throw new Error('Method not implemented.');
+    const taxConfig = await TaxConfigService.getTaxConfig();
+
+    const deductibleTransactions = transactions.filter(
+      transaction => transaction.amount < 0 &&
+                     taxConfig.deductibleCategories.includes(transaction.category),
+    );
+
+    const totalDeductibleExpenses = Math.abs(
+      deductibleTransactions.reduce(
+        (total, transaction) => total + transaction.amount,
+        0
+      )
+    );
+
+    const taxSavings = totalDeductibleExpenses * taxConfig.standardTaxRate;
+
+    const nonDeductibleTransactions = transactions.filter(
+      transaction => transaction.amount < 0 &&
+                     !taxConfig.deductibleCategories.includes(transaction.category),
+    );
+
+    const totalNonDeductibleExpenses = Math.abs(
+      nonDeductibleTransactions.reduce(
+        (total, transaction) => total + transaction.amount,
+        0
+      )
+    );
+
+    const salesTax = totalNonDeductibleExpenses * taxConfig.standardTaxRate;
+
+    const report = `
+TAX AUDIT REPORT
+Deductions: $${totalDeductibleExpenses.toFixed(2)}
+Savings: $${taxSavings.toFixed(2)}
+Sales Tax: $${salesTax.toFixed(2)}
+
+Qualifying Transactions:
+  ${deductibleTransactions
+    .map(
+      transaction =>
+        `- ${transaction.date}: ${transaction.category} - ${transaction.description}: $${Math.abs(transaction.amount).toFixed(2)}`
+    )
+    .join('\n')}
+`;
+
+    return report;
   }
 }
