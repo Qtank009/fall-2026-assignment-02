@@ -26,6 +26,13 @@ export class TaxDeductionStrategy implements AuditStrategy {
                      taxConfig.deductibleCategories.includes(transaction.category),
     );
 
+    const totalDeductibleExpenses = Math.abs(
+      deductibleTransactions.reduce(
+        (total, transaction) => total + transaction.amount,
+        0
+      )
+    );
+
     throw new Error('Method not implemented.');
   }
 }
