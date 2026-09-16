@@ -49,6 +49,21 @@ export class TaxDeductionStrategy implements AuditStrategy {
 
     const salesTax = totalNonDeductibleExpenses * taxConfig.standardTaxRate;
 
-    throw new Error('Method not implemented.');
+    const report = `
+      TAX AUDIT REPORT
+      Deductions: $${totalDeductibleExpenses.toFixed(2)}
+      Savings: $${taxSavings.toFixed(2)}
+      Sales Tax: $${salesTax.toFixed(2)}
+
+      Qualifying Transactions:
+      ${deductibleTransactions
+        .map(
+          transaction =>
+            `- ${transaction.date}: ${transaction.category} - ${transaction.description}: $${Math.abs(transaction.amount).toFixed(2)}`
+        )
+        .join('\n')}
+    `;
+
+    return report;
   }
 }
